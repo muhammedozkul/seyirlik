@@ -470,3 +470,8 @@ hr { border: 0; border-top: 1px solid var(--cizgi); margin: 20px 0; }
 #yedekPencere > p { margin-top: 0; }
 .form-pencere label.arama { display: flex; gap: 8px; }
 .pencere .arama input:not([type="checkbox"]) { border: 0; background: none; padding: 0; height: 100%; border-radius: 0; }
+
+.rehber { background: var(--yuzey2); border: 1px solid var(--cizgi); border-radius: 12px; padding: 10px 14px; margin: 0 0 12px; }
+.rehber summary { cursor: pointer; font-weight: 700; color: var(--vurgu); }
+.rehber ol { margin: 10px 0 2px; padding-left: 20px; display: grid; gap: 7px; font-size: 13.5px; line-height: 1.5; }
+.rehber a { color: var(--vurgu); }

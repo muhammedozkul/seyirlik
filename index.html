@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="stil.css?v=3">
+  <link rel="stylesheet" href="stil.css?v=4">
 </head>
 <body>
   <header class="ust">
@@ -218,7 +218,19 @@
       <button type="button" class="ikon-dugme kapat" data-kapat aria-label="Kapat">✕</button>
     </div>
     <h3 class="ayar-baslik">Otomatik kapaklar</h3>
-    <p class="soluk">Dizi kapakları anahtarsız gelir (TVmaze). Film kapakları ve Türkçe adlar için ücretsiz bir TMDB anahtarı gerekir: themoviedb.org'da hesap aç → Ayarlar → API → “API Key” değerini buraya yapıştır.</p>
+    <p class="soluk">Dizi kapakları anahtarsız gelir (TVmaze). Film kapakları ve Türkçe adlar için ücretsiz bir TMDB anahtarı gerekir.</p>
+    <details class="rehber">
+      <summary>TMDB anahtarını nasıl alırım? (5 dakika)</summary>
+      <ol>
+        <li><a href="https://www.themoviedb.org/signup" target="_blank" rel="noopener noreferrer">themoviedb.org/signup</a> sayfasında ücretsiz hesap aç.</li>
+        <li>E-postana gelen doğrulama bağlantısına tıkla, sonra giriş yap.</li>
+        <li><a href="https://www.themoviedb.org/settings/api" target="_blank" rel="noopener noreferrer">Ayarlar → API</a> sayfasını aç ve <b>Create / click here</b> bağlantısına bas.</li>
+        <li>Tür olarak <b>Developer</b>'ı seç, kullanım şartlarını oku ve kabul et.</li>
+        <li>Formu doldur: Type of Use: <b>Personal</b> · Application Name: <b>Seyirlik</b> · Application URL: <b>http://localhost:8769</b> · Application Summary: <i>Kişisel film ve dizi izleme listem; kapak ve bilgi göstermek için.</i> Ad, adres ve telefon alanlarına kendi bilgilerini yaz.</li>
+        <li><b>Submit</b>'e bas. Açılan sayfadaki <b>API Key</b> değerini (32 karakterlik harf-rakam) kopyala. Uzun <b>API Read Access Token</b> da çalışır.</li>
+        <li>Aşağıdaki kutuya yapıştır ve <b>Kaydet</b>'e bas. “Anahtar çalışıyor ✓” yazısını görünce film kapakları gelmeye başlar.</li>
+      </ol>
+    </details>
     <div class="anahtar-satir">
       <input id="tmdbAnahtar" type="password" placeholder="TMDB API anahtarı" autocomplete="off" spellcheck="false">
       <button class="dugme ana" id="tmdbKaydet">Kaydet</button>
@@ -239,7 +251,7 @@
 
   <div class="bildirimler" id="bildirimler" aria-live="polite"></div>
 
-  <script src="katalog.js?v=3"></script>
-  <script src="uygulama.js?v=3"></script>
+  <script src="katalog.js?v=4"></script>
+  <script src="uygulama.js?v=4"></script>
 </body>
 </html>
