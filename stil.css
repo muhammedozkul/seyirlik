@@ -490,3 +490,8 @@ hr { border: 0; border-top: 1px solid var(--cizgi); margin: 20px 0; }
 .tmdb-davet span { color: var(--soluk); max-width: 420px; }
 .tmdb-davet .dugme { margin-top: 6px; }
 .kart-alt .tmdb-puan { color: var(--soluk); font-weight: 600; }
+
+/* ——— Alt bilgi (kaynak gösterimi) ——— */
+.alt-bilgi { margin-top: 56px; padding-top: 22px; border-top: 1px solid var(--cizgi); text-align: center; color: var(--soluk); font-size: 12.5px; line-height: 1.6; }
+.alt-bilgi p { margin: 0 0 4px; }
+.alt-bilgi a { color: var(--yazi); font-weight: 600; }
