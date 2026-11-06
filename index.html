@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Seyirlik</title>
+  <meta name="description" content="Seyirlik: film ve dizi izleme listen. Puanla, bölüm takip et, bu akşam ne izleyeceğini çarka sor.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="stil.css?v=3">
+</head>
+<body>
+  <header class="ust">
+    <div class="ust-ic">
+      <a class="logo" href="#kesfet" data-git="kesfet"><span class="logo-nokta"></span>Seyirlik</a>
+      <nav class="sekmeler" id="sekmeler" aria-label="Bölümler">
+        <button data-git="kesfet" class="sekme"><span class="sekme-ikon">◎</span><span>Keşfet</span></button>
+        <button data-git="listem" class="sekme"><span class="sekme-ikon">☰</span><span>Listem</span></button>
+        <button data-git="cark" class="sekme"><span class="sekme-ikon">✦</span><span>Ne izlesem?</span></button>
+        <button data-git="istatistik" class="sekme"><span class="sekme-ikon">▥</span><span>İstatistik</span></button>
+      </nav>
+      <div class="ust-sag">
+        <button class="ikon-dugme" id="temaDugme" aria-label="Tema değiştir" title="Tema">◐</button>
+        <button class="ikon-dugme" id="menuDugme" aria-label="Ayarlar" title="Ayarlar ve yedek">⚙</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="icerik">
+    <!-- KEŞFET -->
+    <section class="sayfa" id="sayfa-kesfet">
+      <div class="karsilama">
+        <h1>Bu akşam neye <em>dalıyoruz?</em></h1>
+        <p id="karsilamaAlt">Katalogda gezin, beğendiğini listene ekle.</p>
+      </div>
+      <div class="arac-cubugu">
+        <label class="arama">
+          <span aria-hidden="true">⌕</span>
+          <input id="aramaKutu" type="search" placeholder="Film ya da dizi ara…" autocomplete="off">
+        </label>
+        <div class="cipler" id="tipCipler" role="group" aria-label="Tür seçimi">
+          <button class="cip aktif" data-tip="hepsi">Hepsi</button>
+          <button class="cip" data-tip="film">Film</button>
+          <button class="cip" data-tip="dizi">Dizi</button>
+        </div>
+        <select id="turSec" aria-label="Tür"></select>
+        <select id="siralaSec" aria-label="Sıralama">
+          <option value="onerilen">Önerilen</option>
+          <option value="yeni">En yeni</option>
+          <option value="eski">En eski</option>
+          <option value="ad">A → Z</option>
+          <option value="kisa">En kısa</option>
+        </select>
+        <button class="dugme ana" id="ekleDugme">＋ Yapım ekle</button>
+      </div>
+      <button class="internet-seridi" id="internettenAra" hidden>
+        <span>🌐</span><span>Aradığın burada yok mu? <b>“<span id="internettenAraYazi"></span>”</b> için internette kapağıyla ara</span><span>→</span>
+      </button>
+      <div class="izgara" id="kesfetIzgara"></div>
+      <p class="bos" id="kesfetBos" hidden>Katalogda yok. <button class="bag" id="bosEkle">İnternette ara ve kapağıyla ekle</button></p>
+    </section>
+
+    <!-- LİSTEM -->
+    <section class="sayfa" id="sayfa-listem" hidden>
+      <div class="karsilama">
+        <h1>Listem</h1>
+        <p>İzlediklerin, izleyeceklerin ve yarım kalanlar.</p>
+      </div>
+      <div class="cipler genis" id="listeCipler" role="group" aria-label="Liste">
+        <button class="cip aktif" data-liste="izliyorum">İzliyorum <b></b></button>
+        <button class="cip" data-liste="izlenecek">İzlenecek <b></b></button>
+        <button class="cip" data-liste="izledim">İzledim <b></b></button>
+        <button class="cip" data-liste="birakildi">Yarım bıraktım <b></b></button>
+        <button class="cip" data-liste="favori">♥ Favoriler <b></b></button>
+      </div>
+      <div class="izgara" id="listeIzgara"></div>
+      <div class="bos-kart" id="listeBos" hidden>
+        <div class="bos-ikon">🍿</div>
+        <p id="listeBosYazi"></p>
+        <button class="dugme ana" data-git="kesfet">Keşfet'e git</button>
+      </div>
+    </section>
+
+    <!-- ÇARK -->
+    <section class="sayfa" id="sayfa-cark" hidden>
+      <div class="karsilama">
+        <h1>Bu akşam ne izlesem?</h1>
+        <p>Ruh halini seç, gerisini şansa bırak.</p>
+      </div>
+      <div class="cark-duzen">
+        <div class="cark-ayar">
+          <div class="ayar-grup">
+            <h3>Ruh hali</h3>
+            <div class="cipler sar" id="ruhCipler">
+              <button class="cip aktif" data-ruh="hepsi">🎲 Fark etmez</button>
+              <button class="cip" data-ruh="gerilim">😱 Gerilsin</button>
+              <button class="cip" data-ruh="kahkaha">😂 Güleyim</button>
+              <button class="cip" data-ruh="duygu">🥲 Duygulanayım</button>
+              <button class="cip" data-ruh="aksiyon">💥 Aksiyon</button>
+              <button class="cip" data-ruh="akil">🤯 Aklım uçsun</button>
+              <button class="cip" data-ruh="hafif">🛋️ Kafa dağıtayım</button>
+            </div>
+          </div>
+          <div class="ayar-grup">
+            <h3>Ne kadar vaktin var?</h3>
+            <div class="cipler sar" id="vakitCipler">
+              <button class="cip aktif" data-vakit="hepsi">Fark etmez</button>
+              <button class="cip" data-vakit="bolum">Bir bölümlük (≤ 1 saat)</button>
+              <button class="cip" data-vakit="film">Bir film (≤ 2 saat)</button>
+              <button class="cip" data-vakit="uzun">Bütün gece</button>
+            </div>
+          </div>
+          <div class="ayar-grup">
+            <h3>Nereden seçeyim?</h3>
+            <div class="cipler sar" id="kaynakCipler">
+              <button class="cip aktif" data-kaynak="hepsi">Tüm katalog</button>
+              <button class="cip" data-kaynak="izlenecek">İzlenecek listem</button>
+            </div>
+            <label class="onay"><input type="checkbox" id="izlenenleriAtla" checked> İzlediklerimi önerme</label>
+          </div>
+        </div>
+        <div class="cark-sahne">
+          <div class="makara" id="makara" aria-live="polite">
+            <div class="makara-serit" id="makaraSerit"></div>
+            <div class="makara-cerceve"></div>
+          </div>
+          <button class="dugme dev" id="cevirDugme">✦ Çevir</button>
+          <div class="cark-sonuc" id="carkSonuc" hidden></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- İSTATİSTİK -->
+    <section class="sayfa" id="sayfa-istatistik" hidden>
+      <div class="karsilama">
+        <h1>İzleme karnem</h1>
+        <p>Ekrana ne kadar gömüldüğünün kanıtı.</p>
+      </div>
+      <div class="kpi-satir" id="kpiSatir"></div>
+      <div class="panel-izgara">
+        <div class="panel">
+          <h3>En çok izlediğin türler</h3>
+          <div id="turGrafik" class="cubuk-liste"></div>
+        </div>
+        <div class="panel">
+          <h3>Son 6 ay</h3>
+          <div id="ayGrafik" class="ay-grafik"></div>
+        </div>
+        <div class="panel">
+          <h3>En yüksek puanların</h3>
+          <ol id="enIyiler" class="en-iyiler"></ol>
+        </div>
+      </div>
+      <div class="panel rozet-panel">
+        <h3>Rozetler <span id="rozetSayac" class="soluk"></span></h3>
+        <div class="rozet-izgara" id="rozetIzgara"></div>
+      </div>
+    </section>
+  </main>
+
+  <!-- DETAY -->
+  <dialog class="pencere detay" id="detayPencere">
+    <div id="detayIcerik"></div>
+  </dialog>
+
+  <!-- EKLE -->
+  <dialog class="pencere form-pencere" id="eklePencere">
+    <form id="ekleForm" method="dialog">
+      <div class="pencere-baslik">
+        <h2 id="ekleBaslik">Yapım ekle</h2>
+        <button type="button" class="ikon-dugme kapat" data-kapat aria-label="Kapat">✕</button>
+      </div>
+      <label class="arama web-arama">
+        <span aria-hidden="true">⌕</span>
+        <input id="webArama" type="search" placeholder="Adını yaz, kapağıyla bulayım…" autocomplete="off">
+      </label>
+      <p class="kaynak-notu soluk" id="kaynakNotu"></p>
+      <div class="arama-sonuc" id="aramaSonuc"></div>
+      <button type="button" class="bag elle-ac" id="elleAcDugme">Bulamadın mı? Elle ekle</button>
+      <div class="elle" id="elleBolum" hidden>
+      <label>Ad <input name="ad" maxlength="80" placeholder="Örn. Kurtlar Vadisi"></label>
+      <div class="satir2">
+        <label>Tip
+          <select name="tip">
+            <option value="film">Film</option>
+            <option value="dizi">Dizi</option>
+          </select>
+        </label>
+        <label>Yıl <input name="yil" type="number" min="1900" max="2100" placeholder="2024"></label>
+      </div>
+      <fieldset class="tur-sec">
+        <legend>Türler</legend>
+        <div class="cipler sar" id="ekleTurler"></div>
+      </fieldset>
+      <div class="satir2" data-alan="film">
+        <label>Süre (dakika) <input name="sure" type="number" min="1" max="600" placeholder="120"></label>
+      </div>
+      <div class="satir3" data-alan="dizi" hidden>
+        <label>Sezon <input name="sezon" type="number" min="1" max="99" placeholder="3"></label>
+        <label>Toplam bölüm <input name="bolum" type="number" min="1" max="2000" placeholder="24"></label>
+        <label>Bölüm süresi (dk) <input name="bolumDk" type="number" min="1" max="300" placeholder="45"></label>
+      </div>
+      <label>Afiş bağlantısı <span class="soluk">(isteğe bağlı)</span> <input name="afis" type="url" placeholder="https://…/afis.jpg"></label>
+      <label>Kısa özet <span class="soluk">(isteğe bağlı)</span> <textarea name="ozet" rows="2" maxlength="240"></textarea></label>
+      <div class="form-alt">
+        <button type="button" class="dugme" data-kapat>Vazgeç</button>
+        <button type="submit" class="dugme ana">Ekle</button>
+      </div>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- YEDEK -->
+  <dialog class="pencere form-pencere" id="yedekPencere">
+    <div class="pencere-baslik">
+      <h2>Ayarlar</h2>
+      <button type="button" class="ikon-dugme kapat" data-kapat aria-label="Kapat">✕</button>
+    </div>
+    <h3 class="ayar-baslik">Otomatik kapaklar</h3>
+    <p class="soluk">Dizi kapakları anahtarsız gelir (TVmaze). Film kapakları ve Türkçe adlar için ücretsiz bir TMDB anahtarı gerekir: themoviedb.org'da hesap aç → Ayarlar → API → “API Key” değerini buraya yapıştır.</p>
+    <div class="anahtar-satir">
+      <input id="tmdbAnahtar" type="password" placeholder="TMDB API anahtarı" autocomplete="off" spellcheck="false">
+      <button class="dugme ana" id="tmdbKaydet">Kaydet</button>
+    </div>
+    <p class="soluk kucuk" id="tmdbDurum"></p>
+    <button class="dugme" id="kapaklariYenile">↻ Eksik kapakları yeniden ara</button>
+    <hr>
+    <h3 class="ayar-baslik">Yedek</h3>
+    <p class="soluk">Listen bu tarayıcıda saklanıyor. Başka bilgisayara taşımak ya da güvende tutmak için yedek dosyası indir.</p>
+    <div class="yedek-dugmeler">
+      <button class="dugme ana" id="disaAktar">⇩ Yedeği indir</button>
+      <label class="dugme">⇧ Yedekten yükle <input type="file" id="iceAktar" accept="application/json,.json" hidden></label>
+    </div>
+    <hr>
+    <button class="dugme tehlike" id="sifirla">Her şeyi sıfırla</button>
+    <p class="soluk kucuk atif">Dizi verileri ve kapakları: <a href="https://www.tvmaze.com" target="_blank" rel="noopener noreferrer">TVmaze</a>. Film verileri: <a href="https://www.themoviedb.org" target="_blank" rel="noopener noreferrer">TMDB</a>. This product uses the TMDB API but is not endorsed or certified by TMDB.</p>
+  </dialog>
+
+  <div class="bildirimler" id="bildirimler" aria-live="polite"></div>
+
+  <script src="katalog.js?v=3"></script>
+  <script src="uygulama.js?v=3"></script>
+</body>
+</html>
