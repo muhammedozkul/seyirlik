@@ -48,9 +48,13 @@ function hash(s) { let h = 2166136261; for (const c of String(s)) { h ^= c.codeP
 const TUR_RENK = { "Aksiyon": 12, "Macera": 32, "Animasyon": 300, "Komedi": 48, "Dram": 222, "Suç": 352, "Gerilim": 265, "Korku": 0, "Gizem": 248, "Bilim Kurgu": 190, "Fantastik": 280, "Romantik": 335, "Aile": 140, "Müzik": 316, "Tarih": 28, "Savaş": 70, "Belgesel": 160 };
 
 function tumOgeler() { return [...D.ozel, ...KATALOG]; }
-function ogeBul(id) { return D.ozel.find((o) => o.id === id) || KATALOG.find((o) => o.id === id); }
+// TMDB'de keşfet bölümünden gelen, henüz listeye girmemiş yapımlar (kaydedilmez)
+const gecici = new Map();
+function ogeBul(id) { return D.ozel.find((o) => o.id === id) || KATALOG.find((o) => o.id === id) || gecici.get(id); }
 function kayit(id) { return D.kayit[id]; }
 function kayitOlustur(id) {
+  // TMDB'den gelen bir yapımla ilk kez bir şey yapılınca kalıcı olarak kataloğa alınır
+  if (gecici.has(id) && !D.ozel.some((o) => o.id === id)) { D.ozel.unshift({ ...gecici.get(id) }); turSecDoldur(); }
   if (!D.kayit[id]) D.kayit[id] = { durum: null, puan: 0, not: "", favori: false, izlenenBolum: 0, bolumZaman: [], eklenme: Date.now() };
   return D.kayit[id];
 }
@@ -105,6 +109,7 @@ function kartHTML(o, { hizliEkle = true } = {}) {
   if (k?.puan) alt.push(`<span class="yildiz">★ ${k.puan}</span>`);
   if (k?.favori) alt.push(`<span class="kalp">♥</span>`);
   if (o.tip === "dizi" && k?.izlenenBolum && k.durum !== "izledim") alt.push(`<span>${k.izlenenBolum}/${toplamBolum(o)} bölüm</span>`);
+  if (o.tmdbPuan && !k?.puan) alt.push(`<span class="tmdb-puan">★ ${o.tmdbPuan}</span>`);
   else alt.push(`<span>${kacis(o.yil || "")}${o.tip === "film" && o.sure ? " · " + o.sure + " dk" : ""}${o.tip === "dizi" && o.sezon ? " · " + o.sezon + " sezon" : ""}</span>`);
   return `<article class="kart" tabindex="0" data-id="${kacis(o.id)}" aria-label="${kacis(o.ad)}">
     <div style="position:relative">${afisHTML(o)}${durumIsaret}${hizli}${ilerleme}</div>
@@ -151,24 +156,26 @@ function renderKesfet() {
   if (filtre.sirala === "eski") liste.sort((a, b) => (a.yil || 0) - (b.yil || 0));
   if (filtre.sirala === "ad") liste.sort((a, b) => a.ad.localeCompare(b.ad, "tr"));
   if (filtre.sirala === "kisa") liste.sort((a, b) => sure(a) - sure(b));
+  if (filtre.sirala === "puan") liste.sort((a, b) => (kayit(b.id)?.puan || 0) - (kayit(a.id)?.puan || 0));
   $("#kesfetIzgara").innerHTML = liste.map((o) => kartHTML(o)).join("");
-  $("#kesfetBos").hidden = liste.length > 0;
-  $("#internettenAra").hidden = !filtre.q.trim();
+  $("#kesfetBos").hidden = liste.length > 0 || !!D.tmdb;
+  $("#katalogSayac").textContent = liste.length ? `${liste.length} yapım` : "";
+  $("#internettenAra").hidden = !filtre.q.trim() || !!D.tmdb;
   $("#internettenAraYazi").textContent = filtre.q.trim();
   const listede = Object.values(D.kayit).filter((k) => k.durum).length;
   $("#karsilamaAlt").textContent = listede
     ? `Katalogda ${tumOgeler().length} yapım var, ${listede} tanesi listende.`
     : `Katalogda ${tumOgeler().length} yapım var. Beğendiğini ＋ ile listene ekle.`;
 }
-$("#aramaKutu").addEventListener("input", (e) => { filtre.q = e.target.value; renderKesfet(); });
+$("#aramaKutu").addEventListener("input", (e) => { filtre.q = e.target.value; renderKesfet(); tmdbYenile(450); });
 $("#tipCipler").addEventListener("click", (e) => {
   const b = e.target.closest("[data-tip]"); if (!b) return;
   filtre.tip = b.dataset.tip;
   $$("#tipCipler .cip").forEach((c) => c.classList.toggle("aktif", c === b));
-  renderKesfet();
+  renderKesfet(); tmdbYenile();
 });
-$("#turSec").addEventListener("change", (e) => { filtre.tur = e.target.value; renderKesfet(); });
-$("#siralaSec").addEventListener("change", (e) => { filtre.sirala = e.target.value; renderKesfet(); });
+$("#turSec").addEventListener("change", (e) => { filtre.tur = e.target.value; renderKesfet(); tmdbYenile(); });
+$("#siralaSec").addEventListener("change", (e) => { filtre.sirala = e.target.value; renderKesfet(); tmdbYenile(); });
 
 // Kartlara tıklama (tüm ızgaralar için ortak)
 document.addEventListener("click", (e) => {
@@ -273,6 +280,21 @@ function detayAc(id) {
   p.dataset.id = id;
   detayCiz(id);
   if (!p.open) p.showModal();
+  const o = ogeBul(id);
+  if (o?.tmdbOn && !o.ayrintili) ayrintiTamamla(o);
+}
+// TMDB listesinden gelen yapımın süresini, bölüm sayısını ve IMDb kimliğini sonradan getirir
+async function ayrintiTamamla(o) {
+  try {
+    const t = await tmdbAyrinti({ kimlik: o.tmdbKimlik, tip: o.tip, yil: o.yil, afis: o.afis });
+    const ek = { ...t, id: o.id, ayrintili: true };
+    if (!ek.ozet) delete ek.ozet;
+    Object.assign(o, ek);
+    const kalici = D.ozel.find((x) => x.id === o.id);
+    if (kalici && kalici !== o) { Object.assign(kalici, ek); kaydet(); }
+    if (gecici.has(o.id)) Object.assign(gecici.get(o.id), ek);
+    if ($("#detayPencere").open && $("#detayPencere").dataset.id === o.id) detayCiz(o.id);
+  } catch { /* ayrıntı gelmezse liste bilgisiyle devam */ }
 }
 function detayCiz(id) {
   const o = ogeBul(id); if (!o) return;
@@ -441,7 +463,7 @@ const turEsle = (liste, tablo) => [...new Set(liste.flatMap((t) => [].concat(tab
 async function tmdbIstek(yol, parametre = {}) {
   const anahtar = D.tmdb.trim();
   const url = new URL("https://api.themoviedb.org/3" + yol);
-  Object.entries({ language: "tr-TR", ...parametre }).forEach(([a, v]) => url.searchParams.set(a, v));
+  Object.entries({ language: "tr-TR", ...parametre }).forEach(([a, v]) => { if (v !== "" && v != null) url.searchParams.set(a, v); });
   const basliklar = { accept: "application/json" };
   if (anahtar.startsWith("eyJ")) basliklar.Authorization = "Bearer " + anahtar; else url.searchParams.set("api_key", anahtar);
   const yanit = await fetch(url, { headers: basliklar });
@@ -450,6 +472,17 @@ async function tmdbIstek(yol, parametre = {}) {
   return yanit.json();
 }
 const tmdbAfis = (yol, boy = "w500") => (yol ? `https://image.tmdb.org/t/p/${boy}${yol}` : "");
+// Afişlerde orijinal hali: yerli yapımda Türkçe, diğerlerinde orijinal (İngilizce) afiş. Ad ve özet Türkçe kalır.
+const afisDili = (dil) => (dil === "tr" ? "tr" : "en");
+function orijinalAfisSec(afisler, dil) {
+  const istenen = afisDili(dil);
+  const liste = afisler || [];
+  return (liste.find((a) => a.iso_639_1 === istenen) || liste.find((a) => a.iso_639_1 === dil) || liste.find((a) => !a.iso_639_1) || liste[0])?.file_path || "";
+}
+async function tmdbOrijinalAfis(tip, kimlik, dil) {
+  const veri = await tmdbIstek(`/${tip === "dizi" ? "tv" : "movie"}/${kimlik}/images`, { language: "", include_image_language: `${afisDili(dil)},${dil || "en"},null` });
+  return orijinalAfisSec(veri.posters, dil);
+}
 
 async function tvmazeAra(q) {
   const yanit = await fetch("https://api.tvmaze.com/search/shows?q=" + encodeURIComponent(q));
@@ -463,7 +496,12 @@ async function tvmazeAra(q) {
   }));
 }
 async function tmdbAra(q) {
-  const veri = await tmdbIstek("/search/multi", { query: q, include_adult: "false" });
+  const [veri, ingilizce] = await Promise.all([
+    tmdbIstek("/search/multi", { query: q, include_adult: "false" }),
+    tmdbIstek("/search/multi", { query: q, include_adult: "false", language: "en-US" }).catch(() => ({ results: [] })),
+  ]);
+  const enAfis = new Map((ingilizce.results || []).map((r) => [`${r.media_type}${r.id}`, r.poster_path]));
+  (veri.results || []).forEach((r) => { const en = enAfis.get(`${r.media_type}${r.id}`); if (r.original_language !== "tr" && en) r.poster_path = en; });
   return (veri.results || []).filter((r) => r.media_type === "movie" || r.media_type === "tv").slice(0, 10).map((r) => {
     const tarih = r.release_date || r.first_air_date || "";
     return {
@@ -558,12 +596,13 @@ async function tvmazeAyrinti(s) {
 }
 async function tmdbAyrinti(s) {
   const tv = s.tip === "dizi";
-  const d = await tmdbIstek(`/${tv ? "tv" : "movie"}/${s.kimlik}`, { append_to_response: "external_ids" });
+  const d = await tmdbIstek(`/${tv ? "tv" : "movie"}/${s.kimlik}`, { append_to_response: "external_ids,images", include_image_language: "en,tr,null" });
+  const orijinalYol = orijinalAfisSec(d.images?.posters, d.original_language);
   const o = {
     id: "ozel-" + Date.now().toString(36), kaynak: `tmdb:${s.kimlik}`, tip: s.tip,
     ad: d.title || d.name, orijinal: d.original_title || d.original_name,
     yil: s.yil, turler: turEsle((d.genres || []).map((g) => g.name), TMDB_TUR),
-    afis: tmdbAfis(d.poster_path) || s.afis,
+    afis: tmdbAfis(orijinalYol || d.poster_path) || s.afis,
     imdb: d.imdb_id || d.external_ids?.imdb_id || undefined,
     ozet: kisalt(d.overview || ""),
   };
@@ -621,13 +660,21 @@ async function tvmazeKapak(o) {
   return null;
 }
 async function tmdbKapak(o) {
+  // İlk sonucu körü körüne alma: yılı tutan (±1) ve kapağı olan sonucu seç; adı da tutanı öne al.
   const tv = o.tip === "dizi";
-  const p = { query: o.orijinal || o.ad };
-  if (o.yil) p[tv ? "first_air_date_year" : "year"] = o.yil;
-  const veri = await tmdbIstek(`/search/${tv ? "tv" : "movie"}`, p);
-  const r = (veri.results || [])[0];
-  if (!r?.poster_path) return null;
-  return { afis: tmdbAfis(r.poster_path) };
+  const yilAl = (r) => +((r.release_date || r.first_air_date || "").slice(0, 4)) || 0;
+  const adlar = [...new Set([o.orijinal, o.ad].filter(Boolean))];
+  for (const ad of adlar) {
+    const veri = await tmdbIstek(`/search/${tv ? "tv" : "movie"}`, { query: ad });
+    const uygun = (veri.results || []).filter((r) => r.poster_path && (!o.yil || !yilAl(r) || Math.abs(yilAl(r) - o.yil) <= 1));
+    const adTutar = (r) => [r.title, r.name, r.original_title, r.original_name].some((x) => x && adlar.some((a) => sadeles(x) === sadeles(a)));
+    const secilen = uygun.find(adTutar) || uygun[0];
+    if (secilen) {
+      const yol = await tmdbOrijinalAfis(o.tip, secilen.id, secilen.original_language).catch(() => "");
+      return { afis: tmdbAfis(yol || secilen.poster_path), ad: secilen.title || secilen.name };
+    }
+  }
+  return null;
 }
 function kartAfisiniYenile(o) {
   $$(`.kart[data-id="${CSS.escape(o.id)}"] .afis`).forEach((eski) => {
@@ -635,6 +682,123 @@ function kartAfisiniYenile(o) {
     eski.replaceWith(sar.firstElementChild);
   });
 }
+
+// ═════════ TMDB'de keşfet: sınırsız film/dizi ═════════
+const TMDB_FILM_TUR = { "Aksiyon": 28, "Macera": 12, "Animasyon": 16, "Komedi": 35, "Suç": 80, "Belgesel": 99, "Dram": 18, "Aile": 10751, "Fantastik": 14, "Tarih": 36, "Korku": 27, "Müzik": 10402, "Gizem": 9648, "Romantik": 10749, "Bilim Kurgu": 878, "Gerilim": 53, "Savaş": 10752 };
+const TMDB_DIZI_TUR = { "Aksiyon": 10759, "Macera": 10759, "Animasyon": 16, "Komedi": 35, "Suç": 80, "Belgesel": 99, "Dram": 18, "Aile": 10751, "Gizem": 9648, "Bilim Kurgu": 10765, "Fantastik": 10765, "Savaş": 10768 };
+const TMDB_ID_TUR = { 28: "Aksiyon", 12: "Macera", 16: "Animasyon", 35: "Komedi", 80: "Suç", 99: "Belgesel", 18: "Dram", 10751: "Aile", 14: "Fantastik", 36: "Tarih", 27: "Korku", 10402: "Müzik", 9648: "Gizem", 10749: "Romantik", 878: "Bilim Kurgu", 53: "Gerilim", 10752: "Savaş", 10759: "Aksiyon", 10765: "Bilim Kurgu", 10768: "Savaş", 10762: "Aile" };
+const tmdb = { sayfa: 0, toplamSayfa: 1, ids: [], yukleniyor: false, no: 0, not: "" };
+
+function tmdbSorgu(sayfa) {
+  const q = filtre.q.trim();
+  const tv = filtre.tip === "dizi";
+  if (q) {
+    const yol = filtre.tip === "hepsi" ? "/search/multi" : tv ? "/search/tv" : "/search/movie";
+    return [yol, { query: q, page: sayfa, include_adult: "false" }];
+  }
+  const p = { page: sayfa, include_adult: "false", "vote_count.gte": 40 };
+  const bugun = new Date().toISOString().slice(0, 10);
+  const tarih = tv ? "first_air_date" : "primary_release_date";
+  p.sort_by = { onerilen: "popularity.desc", yeni: `${tarih}.desc`, eski: `${tarih}.asc`, ad: tv ? "name.asc" : "title.asc", kisa: "popularity.desc", puan: "vote_average.desc" }[filtre.sirala] || "popularity.desc";
+  if (filtre.sirala === "puan") p["vote_count.gte"] = 800;
+  if (filtre.sirala === "eski") p["vote_count.gte"] = 300;
+  if (filtre.sirala === "yeni") p[`${tarih}.lte`] = bugun;
+  if (filtre.sirala === "kisa" && !tv) p["with_runtime.lte"] = 100;
+  if (filtre.tur) p.with_genres = (tv ? TMDB_DIZI_TUR : TMDB_FILM_TUR)[filtre.tur] ?? -1;
+  return [tv ? "/discover/tv" : "/discover/movie", p];
+}
+function tmdbOgeye(r, tipVarsayilan) {
+  const tur = r.media_type || tipVarsayilan;
+  if (tur !== "movie" && tur !== "tv") return null;
+  const tarih = r.release_date || r.first_air_date || "";
+  const tip = tur === "tv" ? "dizi" : "film";
+  return {
+    id: `tmdb-${tur === "tv" ? "t" : "m"}-${r.id}`, kaynak: `tmdb:${r.id}`, tmdbOn: true, tmdbKimlik: r.id, tip,
+    ad: r.title || r.name, orijinal: r.original_title || r.original_name, yil: tarih ? +tarih.slice(0, 4) : undefined,
+    turler: [...new Set((r.genre_ids || []).map((g) => TMDB_ID_TUR[g]).filter(Boolean))].slice(0, 3),
+    afis: tmdbAfis(r.poster_path, "w342"), ozet: kisalt(r.overview || ""),
+    tmdbPuan: r.vote_average ? Math.round(r.vote_average * 10) / 10 : undefined,
+    bolum: tip === "dizi" ? 1 : undefined,
+  };
+}
+function katalogdaVar(o) {
+  return tumOgeler().some((x) => x.kaynak === o.kaynak ||
+    (x.tip === o.tip && (!x.yil || !o.yil || Math.abs(x.yil - o.yil) <= 1) &&
+      [sadeles(x.ad), sadeles(x.orijinal)].some((a) => a && (a === sadeles(o.ad) || a === sadeles(o.orijinal)))));
+}
+let tmdbZamanlayici;
+function tmdbYenile(gecikme = 0) {
+  clearTimeout(tmdbZamanlayici);
+  tmdbZamanlayici = setTimeout(() => {
+    tmdb.no++; tmdb.sayfa = 0; tmdb.toplamSayfa = 1; tmdb.ids = []; tmdb.yukleniyor = false;
+    tmdbBaslikYaz(); tmdbCiz(); tmdbDahaFazla();
+  }, gecikme);
+}
+function tmdbBaslikYaz() {
+  const q = filtre.q.trim();
+  const ne = filtre.tip === "dizi" ? "dizi" : filtre.tip === "film" ? "film" : q ? "film ve dizi" : "film";
+  $("#tmdbBaslik").textContent = q ? `TMDB'de “${q}”` : `TMDB'den daha fazla ${ne}`;
+  const sira = { onerilen: "popülerliğe göre", yeni: "en yeniler", eski: "en eskiler", ad: "A → Z", kisa: "100 dakikadan kısa", puan: "en yüksek puanlılar" }[filtre.sirala];
+  $("#tmdbAlt").textContent = q ? "Sonsuz arşivde arama sonuçları" : `${filtre.tur ? filtre.tur + " · " : ""}${sira}${filtre.tip === "hepsi" ? " · dizi için üstten Dizi'yi seç" : ""}`;
+}
+async function tmdbDahaFazla() {
+  if (!D.tmdb || tmdb.yukleniyor || tmdb.sayfa >= tmdb.toplamSayfa || tmdb.sayfa >= 500) return;
+  const [yol, p] = tmdbSorgu(tmdb.sayfa + 1);
+  if (p.with_genres === -1) { tmdb.not = `TMDB'de “${filtre.tur}” türünde dizi kategorisi yok.`; tmdb.toplamSayfa = 0; tmdbCiz(); return; }
+  tmdb.yukleniyor = true; tmdb.not = ""; tmdbCiz();
+  const no = tmdb.no;
+  try {
+    const [veri, ingilizce] = await Promise.all([
+      tmdbIstek(yol, p),
+      tmdbIstek(yol, { ...p, language: "en-US" }).catch(() => ({ results: [] })),
+    ]);
+    if (no !== tmdb.no) return;
+    const enAfis = new Map((ingilizce.results || []).map((r) => [`${r.media_type || ""}${r.id}`, r.poster_path]));
+    (veri.results || []).forEach((r) => {
+      const en = enAfis.get(`${r.media_type || ""}${r.id}`);
+      if (r.original_language !== "tr" && en) r.poster_path = en;
+    });
+    tmdb.sayfa = veri.page || tmdb.sayfa + 1;
+    tmdb.toplamSayfa = veri.total_pages || 0;
+    const varsayilan = yol.includes("/tv") ? "tv" : "movie";
+    for (const r of veri.results || []) {
+      const o = tmdbOgeye(r, varsayilan);
+      if (!o || !o.afis) continue;
+      const kalici = D.ozel.find((x) => x.id === o.id);
+      if (!kalici && katalogdaVar(o)) continue;
+      if (!kalici && !gecici.has(o.id)) gecici.set(o.id, o);
+      if (!tmdb.ids.includes(o.id)) tmdb.ids.push(o.id);
+    }
+    if (!tmdb.ids.length && tmdb.sayfa >= tmdb.toplamSayfa) tmdb.not = "TMDB'de de bir şey bulamadım.";
+  } catch (hata) {
+    if (no !== tmdb.no) return;
+    tmdb.not = hata.message || "TMDB'ye ulaşılamadı.";
+  }
+  tmdb.yukleniyor = false;
+  tmdbCiz();
+  // Ekran hâlâ dolmadıysa bir sayfa daha getir
+  if (no === tmdb.no && !tmdb.not && tmdb.ids.length < 12 && tmdb.sayfa < tmdb.toplamSayfa) tmdbDahaFazla();
+}
+function tmdbCiz() {
+  const bolum = $("#tmdbBolum");
+  if (!D.tmdb) {
+    bolum.hidden = false;
+    $("#tmdbIzgara").innerHTML = "";
+    $("#tmdbDurum").innerHTML = `<div class="tmdb-davet"><b>Daha fazla film mi istiyorsun?</b><span>Ücretsiz TMDB anahtarını eklersen burada yüz binlerce film ve dizi listelenir.</span><button class="dugme ana" data-ayarlara-git>Anahtarı ekle</button></div>`;
+    $("#tmdbDahaDugme").hidden = true;
+    return;
+  }
+  bolum.hidden = false;
+  $("#tmdbIzgara").innerHTML = tmdb.ids.map((id) => ogeBul(id)).filter(Boolean).map((o) => kartHTML(o)).join("");
+  $("#tmdbDurum").innerHTML = tmdb.yukleniyor ? `<p class="arama-durum">Yükleniyor…</p>` : tmdb.not ? `<p class="arama-durum">${kacis(tmdb.not)}</p>` : "";
+  $("#tmdbDahaDugme").hidden = tmdb.yukleniyor || !!tmdb.not || tmdb.sayfa >= tmdb.toplamSayfa || tmdb.sayfa >= 500;
+}
+$("#tmdbDahaDugme").addEventListener("click", () => tmdbDahaFazla());
+document.addEventListener("click", (e) => { if (e.target.closest("[data-ayarlara-git]")) ayarlarAc(true); });
+// Aşağı inince kendiliğinden daha fazla yükle
+new IntersectionObserver((girdiler) => {
+  if (girdiler.some((g) => g.isIntersecting) && !$("#sayfa-kesfet").hidden) tmdbDahaFazla();
+}, { rootMargin: "600px" }).observe($("#tmdbGozcu"));
 
 // ═════════ Çark ═════════
 const cark = { ruh: "hepsi", vakit: "hepsi", kaynak: "hepsi" };
@@ -849,7 +1013,7 @@ $("#menuDugme").addEventListener("click", () => ayarlarAc());
 $("#yedekPencere").addEventListener("click", (e) => { if (e.target === $("#yedekPencere") || e.target.closest("[data-kapat]")) $("#yedekPencere").close(); });
 $("#tmdbKaydet").addEventListener("click", async () => {
   const deger = $("#tmdbAnahtar").value.trim();
-  if (!deger) { D.tmdb = ""; kaydet(); tmdbDurumYaz(); kaynakNotu(); return; }
+  if (!deger) { D.tmdb = ""; kaydet(); tmdbDurumYaz(); kaynakNotu(); tmdbYenile(); renderKesfet(); return; }
   tmdbDurumYaz("Anahtar deneniyor…");
   const eski = D.tmdb; D.tmdb = deger;
   try {
@@ -857,6 +1021,7 @@ $("#tmdbKaydet").addEventListener("click", async () => {
     kaydet(); tmdbDurumYaz("Anahtar çalışıyor ✓ Katalog kapakları getiriliyor…");
     const n = await katalogKapaklari();
     tmdbDurumYaz(`Anahtar çalışıyor ✓ ${n || 0} yeni kapak bulundu.`);
+    tmdbYenile();
   } catch (hata) {
     D.tmdb = eski; kaydet();
     tmdbDurumYaz(hata.message || "Anahtar denenemedi.");
@@ -902,10 +1067,15 @@ $("#sifirla").addEventListener("click", () => {
 temaUygula();
 turSecDoldur();
 D.rozetler = D.rozetler.filter((id) => ROZETLER.some((r) => r.id === id));
-if (D.afisSurum !== 2) { // eski arama bazı dizileri kaçırıyordu: bulunamayanları yeniden dene
+if ((D.afisSurum === 2 || D.afisSurum === 3) && D.tmdb) { // 3: TMDB eşleşmesi düzeltildi, film kapakları yeniden aranır
+  KATALOG.forEach((o) => { if (o.tip === "film") { delete D.afisler[o.id]; delete D.afisDenendi["tmdb:" + o.id]; } });
+  D.afisSurum = 4; kaydet();
+}
+if (!(D.afisSurum >= 2)) { // eski arama bazı dizileri kaçırıyordu: bulunamayanları yeniden dene
   Object.keys(D.afisDenendi).forEach((a) => { if (!D.afisler[a.split(":")[1]]) delete D.afisDenendi[a]; });
-  D.afisSurum = 2; kaydet();
+  D.afisSurum = 4; kaydet();
 }
 git(location.hash.slice(1) || "kesfet");
 makaraDoldur([...KATALOG].sort(() => Math.random() - 0.5).slice(0, 12));
 setTimeout(() => katalogKapaklari(), 600);
+tmdbYenile();

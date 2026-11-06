@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="stil.css?v=4">
+  <link rel="stylesheet" href="stil.css?v=7">
 </head>
 <body>
   <header class="ust">
@@ -51,14 +51,23 @@
           <option value="eski">En eski</option>
           <option value="ad">A → Z</option>
           <option value="kisa">En kısa</option>
+          <option value="puan">En yüksek puan</option>
         </select>
         <button class="dugme ana" id="ekleDugme">＋ Yapım ekle</button>
       </div>
       <button class="internet-seridi" id="internettenAra" hidden>
         <span>🌐</span><span>Aradığın burada yok mu? <b>“<span id="internettenAraYazi"></span>”</b> için internette kapağıyla ara</span><span>→</span>
       </button>
+      <div class="bolum-baslik"><h2>Seyirlik seçkisi</h2><span class="soluk" id="katalogSayac"></span></div>
       <div class="izgara" id="kesfetIzgara"></div>
       <p class="bos" id="kesfetBos" hidden>Katalogda yok. <button class="bag" id="bosEkle">İnternette ara ve kapağıyla ekle</button></p>
+      <section class="tmdb-bolum" id="tmdbBolum" hidden>
+        <div class="bolum-baslik"><h2 id="tmdbBaslik">TMDB'den daha fazla</h2><span class="soluk" id="tmdbAlt"></span></div>
+        <div class="izgara" id="tmdbIzgara"></div>
+        <div id="tmdbDurum"></div>
+        <button class="dugme daha-dugme" id="tmdbDahaDugme" hidden>Daha fazla yükle</button>
+        <div id="tmdbGozcu" aria-hidden="true"></div>
+      </section>
     </section>
 
     <!-- LİSTEM -->
@@ -251,7 +260,7 @@
 
   <div class="bildirimler" id="bildirimler" aria-live="polite"></div>
 
-  <script src="katalog.js?v=4"></script>
-  <script src="uygulama.js?v=4"></script>
+  <script src="katalog.js?v=7"></script>
+  <script src="uygulama.js?v=7"></script>
 </body>
 </html>

@@ -475,3 +475,18 @@ hr { border: 0; border-top: 1px solid var(--cizgi); margin: 20px 0; }
 .rehber summary { cursor: pointer; font-weight: 700; color: var(--vurgu); }
 .rehber ol { margin: 10px 0 2px; padding-left: 20px; display: grid; gap: 7px; font-size: 13.5px; line-height: 1.5; }
 .rehber a { color: var(--vurgu); }
+
+/* ——— Bölüm başlıkları ve TMDB keşif ——— */
+.bolum-baslik { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; margin: 0 0 14px; }
+.bolum-baslik h2 { font-family: var(--serif); font-size: 24px; margin: 0; letter-spacing: -.01em; }
+.tmdb-bolum { margin-top: 44px; padding-top: 28px; border-top: 1px solid var(--cizgi); }
+.daha-dugme { display: flex; margin: 26px auto 0; }
+#tmdbGozcu { height: 1px; }
+#tmdbDurum .arama-durum { text-align: center; padding: 18px 0; }
+.tmdb-davet {
+  display: grid; justify-items: center; gap: 8px; text-align: center; padding: 30px 20px;
+  border: 1.5px dashed color-mix(in srgb, var(--vurgu) 50%, var(--cizgi)); border-radius: 18px;
+}
+.tmdb-davet span { color: var(--soluk); max-width: 420px; }
+.tmdb-davet .dugme { margin-top: 6px; }
+.kart-alt .tmdb-puan { color: var(--soluk); font-weight: 600; }
