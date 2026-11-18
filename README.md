@@ -10,6 +10,8 @@ python3 -m http.server 8769 --directory ~/Projeler/seyirlik
 
 🎬 **Open in your browser:** https://muhammedozkul.github.io/seyirlik/
 
+<p align="center"><img src="media/demo.gif" alt="Browsing the catalog and spinning the 'What should I watch?' wheel" width="720"></p>
+
 ## Features
 - **Discover:** a ready-made catalog of 102 titles (69 movies, 33 shows), search, movie/show and genre filters, sorting.
 - **Automatic posters:** posters for shows in the catalog come from TVmaze automatically. If you enter a TMDB key, movie posters come too.

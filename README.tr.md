@@ -10,6 +10,8 @@ python3 -m http.server 8769 --directory ~/Projeler/seyirlik
 
 🎬 **Tarayıcıda aç:** https://muhammedozkul.github.io/seyirlik/
 
+<p align="center"><img src="media/demo.gif" alt="Katalogda gezinip 'Ne izlesem?' çarkını çevirmek" width="720"></p>
+
 ## Özellikler
 - **Keşfet:** 102 yapımlık hazır katalog (69 film, 33 dizi), arama, film/dizi ve tür filtresi, sıralama.
 - **Otomatik kapak:** Katalogdaki dizilerin kapakları TVmaze'den kendiliğinden gelir. TMDB anahtarı girilirse filmlerin kapakları da gelir.
