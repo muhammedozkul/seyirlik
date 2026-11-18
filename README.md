@@ -1,27 +1,31 @@
+**English** · [Türkçe](README.tr.md)
+
 # Seyirlik
 
-Tarayıcıda çalışan film ve dizi izleme listesi. Kurulum ya da derleme yok; `index.html`'i bir sunucuyla aç:
+A movie and TV show watchlist that runs in the browser. No installation or build; open `index.html` with a server:
 
 ```bash
 python3 -m http.server 8769 --directory ~/Projeler/seyirlik
 ```
 
-## Özellikler
-- **Keşfet:** 102 yapımlık hazır katalog (69 film, 33 dizi), arama, film/dizi ve tür filtresi, sıralama.
-- **Otomatik kapak:** Katalogdaki dizilerin kapakları TVmaze'den kendiliğinden gelir. TMDB anahtarı girilirse filmlerin kapakları da gelir.
-- **Yapım ekle:** Adını yaz, kapaklı sonuçlardan seç; yıl, tür, süre ve bölüm sayısıyla listene eklenir. İstersen elle de eklenir.
-- **Listem:** İzliyorum, İzlenecek, İzledim, Yarım bıraktım, Favoriler.
-- **Detay:** Durum, 10 üzerinden puan, not, favori, dizide bölüm sayacı, "IMDb'de aç".
-- **Ne izlesem?:** Ruh hali, süre ve kaynağa göre süzen öneri çarkı.
-- **İstatistik:** İzlenen film ve bölüm sayısı, toplam saat, ortalama puan, tür dağılımı, son 6 ay, en yüksek puanlar.
-- **Rozetler:** 14 başarım.
-- Açık/koyu tema, JSON yedek indirme/yükleme. Veriler tarayıcıda (`localStorage`) durur.
+🎬 **Open in your browser:** https://muhammedozkul.github.io/seyirlik/
 
-## TMDB anahtarı (isteğe bağlı)
-themoviedb.org'da ücretsiz hesap aç → Ayarlar → API → "API Key" değerini kopyala → Seyirlik'te ⚙ Ayarlar → Otomatik kapaklar alanına yapıştır. Anahtar yalnız bu tarayıcıda saklanır, yedek dosyasına girmez.
+## Features
+- **Discover:** a ready-made catalog of 102 titles (69 movies, 33 shows), search, movie/show and genre filters, sorting.
+- **Automatic posters:** posters for shows in the catalog come from TVmaze automatically. If you enter a TMDB key, movie posters come too.
+- **Add a title:** type its name and pick from the results with posters; it's added to your list with year, genre, runtime and episode count. You can also add it manually.
+- **My list:** Watching, Plan to watch, Watched, Dropped, Favorites.
+- **Details:** status, rating out of 10, notes, favorite, episode counter for shows, "Open on IMDb".
+- **What should I watch?:** a suggestion wheel that filters by mood, length and source.
+- **Stats:** movies and episodes watched, total hours, average rating, genre breakdown, last 6 months, top-rated titles.
+- **Badges:** 14 achievements.
+- Light/dark theme, JSON backup download/upload. Data stays in the browser (`localStorage`).
 
-## Dosyalar
-- `index.html` sayfa yapısı · `stil.css` görünüm · `katalog.js` hazır katalog · `uygulama.js` tüm davranış
+## TMDB key (optional)
+Create a free account at themoviedb.org → Settings → API → copy the "API Key" value → in Seyirlik, ⚙ Settings → paste it into the Automatic posters field. The key is stored only in this browser and is not included in backup files.
 
-## Kaynaklar
-Dizi verileri ve kapakları: [TVmaze](https://www.tvmaze.com) (CC BY-SA). Film verileri: [TMDB](https://www.themoviedb.org). This product uses the TMDB API but is not endorsed or certified by TMDB. Katalog özetleri Seyirlik için yazılmıştır.
+## Files
+- `index.html` page structure · `stil.css` styles · `katalog.js` built-in catalog · `uygulama.js` all behavior
+
+## Credits
+Show data and posters: [TVmaze](https://www.tvmaze.com) (CC BY-SA). Movie data: [TMDB](https://www.themoviedb.org). This product uses the TMDB API but is not endorsed or certified by TMDB. Catalog summaries were written for Seyirlik.
